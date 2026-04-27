@@ -1,4 +1,4 @@
-import { DailyReport } from '../types';
+import { DailyReport, CASE_TYPES } from '../types';
 import * as XLSX from 'xlsx';
 import { 
   Search, 
@@ -12,7 +12,8 @@ import {
   Clock,
   Briefcase,
   User,
-  Scale
+  Scale,
+  X
 } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { cn } from '../lib/utils';
@@ -22,15 +23,49 @@ interface ReportListProps {
   onDelete: (id: string) => void;
 }
 
+interface FilterState {
+  caseType: string;
+  startDate: string;
+  endDate: string;
+}
+
 export default function ReportList({ reports, onDelete }: ReportListProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedReport, setSelectedReport] = useState<DailyReport | null>(null);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [filters, setFilters] = useState<FilterState>({
+    caseType: '',
+    startDate: '',
+    endDate: ''
+  });
 
-  const filteredReports = reports.filter(r => 
-    r.parties.some(p => p.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    r.caseType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    r.providerName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredReports = reports.filter(r => {
+    const matchesSearch = 
+      r.parties.some(p => p.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      r.caseType.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      r.providerName.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesCaseType = filters.caseType === '' || r.caseType === filters.caseType;
+    
+    let matchesDate = true;
+    if (filters.startDate) {
+      matchesDate = matchesDate && new Date(r.date) >= new Date(filters.startDate);
+    }
+    if (filters.endDate) {
+      matchesDate = matchesDate && new Date(r.date) <= new Date(filters.endDate);
+    }
+
+    return matchesSearch && matchesCaseType && matchesDate;
+  });
+
+  const resetFilters = () => {
+    setFilters({
+      caseType: '',
+      startDate: '',
+      endDate: ''
+    });
+    setSearchTerm('');
+  };
 
   const handleExportExcel = () => {
     if (reports.length === 0) return;
@@ -100,7 +135,15 @@ export default function ReportList({ reports, onDelete }: ReportListProps) {
         </div>
         
         <div className="flex gap-4 w-full md:w-auto">
-          <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 border border-slate-300 rounded-lg text-[11px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-50 transition-all">
+          <button 
+            onClick={() => setIsFilterOpen(!isFilterOpen)}
+            className={cn(
+              "flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 border rounded-lg text-[11px] font-black uppercase tracking-widest transition-all",
+              isFilterOpen 
+                ? "bg-blue-50 border-blue-200 text-blue-600 shadow-sm" 
+                : "border-slate-300 text-slate-500 hover:bg-slate-50"
+            )}
+          >
             <Filter size={16} /> Filter Data
           </button>
           <button 
@@ -111,6 +154,59 @@ export default function ReportList({ reports, onDelete }: ReportListProps) {
           </button>
         </div>
       </div>
+
+      {/* Advanced Filter Panel */}
+      {isFilterOpen && (
+        <div className="bg-white p-8 rounded-xl shadow-lg border border-slate-200 animate-in slide-in-from-top-4 duration-300 space-y-6">
+          <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+            <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
+              <Filter size={18} className="text-blue-600" /> Pengaturan Filter Lanjutan
+            </h3>
+            <button 
+              onClick={resetFilters}
+              className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline"
+            >
+              Reset Semua
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Klasifikasi Perkara</label>
+              <select 
+                value={filters.caseType}
+                onChange={(e) => setFilters({...filters, caseType: e.target.value})}
+                className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-[#f8fafc] focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-bold text-sm appearance-none cursor-pointer"
+              >
+                <option value="">Semua Perkara</option>
+                {CASE_TYPES.map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Tanggal Mulai</label>
+              <input 
+                type="date"
+                value={filters.startDate}
+                onChange={(e) => setFilters({...filters, startDate: e.target.value})}
+                className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-[#f8fafc] focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-bold text-sm cursor-pointer"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Tanggal Selesai</label>
+              <input 
+                type="date"
+                value={filters.endDate}
+                onChange={(e) => setFilters({...filters, endDate: e.target.value})}
+                className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-[#f8fafc] focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-bold text-sm cursor-pointer"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Table Container */}
       <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200 overflow-hidden">
