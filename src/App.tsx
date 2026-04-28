@@ -8,26 +8,25 @@ import {
   Menu, 
   X,
   Scale,
-  Calendar as CalendarIcon,
-  Users,
-  Clock,
-  MapPin,
-  Briefcase,
-  FileText
 } from 'lucide-react';
 import { DailyReport } from './types';
 import ReportForm from './components/ReportForm';
 import ReportList from './components/ReportList';
 import DashboardHome from './components/DashboardHome';
+import LoginPage from './components/LoginPage';
 import { cn } from './lib/utils';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'input' | 'data'>('dashboard');
   const [reports, setReports] = useState<DailyReport[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
 
-  // Load data from localStorage on mount
+  // Check login status from localStorage on mount
   useEffect(() => {
+    const loginStatus = localStorage.getItem('posbakum_is_logged_in');
+    setIsLoggedIn(loginStatus === 'true');
+
     const savedReports = localStorage.getItem('posbakum_reports');
     if (savedReports) {
       try {
@@ -38,10 +37,25 @@ export default function App() {
     }
   }, []);
 
+  // Save auth status to localStorage
+  useEffect(() => {
+    if (isLoggedIn !== null) {
+      localStorage.setItem('posbakum_is_logged_in', isLoggedIn.toString());
+    }
+  }, [isLoggedIn]);
+
   // Save data to localStorage when reports change
   useEffect(() => {
     localStorage.setItem('posbakum_reports', JSON.stringify(reports));
   }, [reports]);
+
+  const handleLogin = (status: boolean) => {
+    setIsLoggedIn(status);
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+  };
 
   const addReport = (newReport: DailyReport) => {
     setReports([newReport, ...reports]);
@@ -51,6 +65,13 @@ export default function App() {
   const deleteReport = (id: string) => {
     setReports(reports.filter(r => r.id !== id));
   };
+
+  // Only render once we've checked the login status
+  if (isLoggedIn === null) return null;
+
+  if (!isLoggedIn) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
 
   return (
     <div className="min-h-screen bg-brand-bg text-slate-800 flex font-sans">
@@ -97,11 +118,11 @@ export default function App() {
           />
         </nav>
 
-        <div className="p-6 border-t border-slate-800 mb-4">
+        <div className="px-4 pb-6 space-y-2">
           {isSidebarOpen && (
-            <div className="mb-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="mb-6 px-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
               <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Status Petugas</p>
-              <div className="flex items-center gap-3 bg-slate-800/50 p-3 rounded-xl border border-slate-700/50">
+              <div className="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
                 <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center font-bold text-blue-400 border border-slate-600">
                    PB
                 </div>
@@ -114,12 +135,27 @@ export default function App() {
               </div>
             </div>
           )}
+
+          <button 
+            onClick={handleLogout}
+            className={cn(
+              "flex items-center gap-3 px-4 py-3 w-full rounded-xl transition-all duration-300 cursor-pointer group hover:bg-red-500/10 text-slate-400 hover:text-red-400",
+              !isSidebarOpen && "justify-center px-0"
+            )}
+          >
+            <LogOut size={20} />
+            {isSidebarOpen && <span className="text-xs font-black uppercase tracking-widest">Logout Keluar</span>}
+          </button>
+
           <button 
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="flex items-center gap-3 px-3 py-2 w-full text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+            className={cn(
+              "flex items-center gap-3 px-4 py-3 w-full text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-all cursor-pointer",
+              !isSidebarOpen && "justify-center px-0"
+            )}
           >
             {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
-            {isSidebarOpen && <span className="text-xs font-bold uppercase tracking-widest">Sembunyikan</span>}
+            {isSidebarOpen && <span className="text-xs font-black uppercase tracking-widest">Sembunyikan</span>}
           </button>
         </div>
       </aside>
@@ -130,7 +166,7 @@ export default function App() {
         isSidebarOpen ? "ml-[320px]" : "ml-20"
       )}>
         {/* Header */}
-        <header className="h-24 bg-white/50 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-12 sticky top-0 z-40">
+        <header className="h-24 bg-white/70 backdrop-blur-xl border-b border-slate-200 flex items-center justify-between px-12 sticky top-0 z-40">
           <div>
             <h2 className="text-3xl font-black text-slate-800 tracking-tight">
               {activeTab === 'dashboard' ? (
@@ -151,7 +187,6 @@ export default function App() {
             <div className="flex items-center gap-3">
               <div className="text-right">
                 <p className="text-sm font-black text-slate-800">Admin Posbakum</p>
-                <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Advokat Posbakum</p>
               </div>
               <div className="w-12 h-12 rounded-xl bg-brand-sidebar border-2 border-white shadow-xl flex items-center justify-center text-white overflow-hidden">
                  <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="avatar" />
