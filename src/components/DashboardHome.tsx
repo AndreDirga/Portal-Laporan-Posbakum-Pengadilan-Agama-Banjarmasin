@@ -134,20 +134,20 @@ export default function DashboardHome({ reports }: DashboardHomeProps) {
           <h3 className="font-black text-slate-800 text-sm uppercase tracking-widest">Metrik Layanan</h3>
           <div className="space-y-6">
             <ServiceSummaryItem 
-              label="Konsultasi Hukum" 
+              label="Jumlah Layanan Konsultasi" 
               count={reports.filter(r => r.providedService.includes('Konsultasi')).length} 
               total={reports.length}
               color="bg-blue-600"
             />
             <ServiceSummaryItem 
-              label="Pembuatan Dokumen" 
-              count={reports.filter(r => r.providedService.includes('Dokumen')).length} 
+              label="Jumlah Layanan Gugatan" 
+              count={reports.filter(r => r.providedService.includes('Gugatan')).length} 
               total={reports.length}
               color="bg-slate-900"
             />
             <ServiceSummaryItem 
-              label="Informasi Hukum" 
-              count={reports.filter(r => r.providedService.includes('Informasi')).length} 
+              label="Jumlah Layanan Permohonan" 
+              count={reports.filter(r => r.providedService.includes('Permohonan')).length} 
               total={reports.length}
               color="bg-blue-400"
             />
