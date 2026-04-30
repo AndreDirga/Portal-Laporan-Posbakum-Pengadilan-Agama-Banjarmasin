@@ -160,7 +160,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 Pengadilan Agama Banjarmasin Kelas IA
               </p>
               <div className="flex justify-center gap-1 mt-1 text-[9px] text-slate-300 font-bold uppercase tracking-tighter">
-                <span>© 2024</span>
+                <span>© 2026</span>
                 <span>•</span>
                 <span>Pusat Data Posbakum</span>
               </div>

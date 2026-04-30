@@ -32,6 +32,11 @@ export const CASE_TYPES = [
   "Harta Bersama",
   "Perwalian",
   "Asal Usul Anak",
+  "Wali Adhol",
+  "Pencegahan Pernikahan",
+  "Pembatalan Pernikahan",
+  "Itsbat Nikah Voluntair",
+  "Kesimpulan",
   "Replik",
   "Perubahan Gugatan/Permohonan",
   "Lain-lain"

@@ -135,20 +135,20 @@ export default function DashboardHome({ reports }: DashboardHomeProps) {
           <div className="space-y-6">
             <ServiceSummaryItem 
               label="Jumlah Layanan Konsultasi" 
-              count={reports.filter(r => r.providedService.includes('Konsultasi')).length} 
-              total={reports.length}
+              count={reports.filter(r => r.providedService.includes('Konsultasi')).reduce((acc, curr) => acc + (Number(curr.serviceSeekersCount) || 0), 0)} 
+              total={totalServiceSeekers}
               color="bg-blue-600"
             />
             <ServiceSummaryItem 
               label="Jumlah Layanan Gugatan" 
-              count={reports.filter(r => r.providedService.includes('Gugatan')).length} 
-              total={reports.length}
+              count={reports.filter(r => r.providedService.includes('Gugatan')).reduce((acc, curr) => acc + (Number(curr.serviceSeekersCount) || 0), 0)} 
+              total={totalServiceSeekers}
               color="bg-slate-900"
             />
             <ServiceSummaryItem 
               label="Jumlah Layanan Permohonan" 
-              count={reports.filter(r => r.providedService.includes('Permohonan')).length} 
-              total={reports.length}
+              count={reports.filter(r => r.providedService.includes('Permohonan')).reduce((acc, curr) => acc + (Number(curr.serviceSeekersCount) || 0), 0)} 
+              total={totalServiceSeekers}
               color="bg-blue-400"
             />
           </div>
